@@ -1,0 +1,123 @@
+---
+title: "ACTL90020 Module 7"
+output: html_notebook
+---
+
+### This notebook is for the module 7 exercises of ACTL90020
+
+**7.2 Examples**
+
+```{r 7.2.1 Prep}
+library(astsa) # Applied Statistical TS Analysis
+library(xts) # eXtensible TS
+library(quantmod)
+
+DJI = getSymbols("^DJI", src="yahoo",
+                 from="2006-01-01", to="2020-12-31", periodicity="daily",
+                 env=NULL)
+
+ASX200 = getSymbols("^AXJO", src="yahoo", 
+                    from="2006-01-01", to="2020-12-31", periodicity="daily",
+                    env=NULL)
+
+ASX200 = na.approx(ASX200)
+
+ASX200.high = ASX200$AXJO.High
+DJI.high = DJI$DJI.High
+```
+
+```{r 7.2.1, echo=F}
+plot(ASX200.high)
+plot(DJI.high)
+```
+
+*7.2.2: Using 21-point centered MA*
+```{r 7.2.2, echo=F}
+# 7.2.2
+# 21-point MA
+
+ASX.21MA = filter(ASX200.high, filter=rep(1/42, 42), sides=2)
+DJI.21MA = filter(DJI.high, filter=rep(1/42, 42), sides=2)
+
+plot(ASX.21MA)
+plot(DJI.21MA)
+```
+
+**7.3 Describing the behaviour of basic models**
+
+*7.3.1*
+
+Calculate the autocovariance and autocorrelation of MA(1):  
+
+$$ x_t = \mu + w_t + \beta_1 w_{t-1} $$
+
+*Autocovariance*
+\begin{align}
+    \gamma (s, t) &= E[(x_t - \mu_t)(x_s - \mu_s)] \\
+    &= E[(w_t + \beta_1 w_{t-1})(w_s + \beta_1 w_{s-1})] \\
+    &= \begin{cases}
+            (1+\beta_1^2)\sigma_w^2 & \text{if $t=s$} \\
+            \beta_1 \sigma_w^2 & \text{if $|t-s|=1$} \\
+            0 & \text{Otherwise} 
+        \end{cases}
+\end{align}
+
+*Autocorrelation*  
+
+$$\rho (s, t) = \begin{cases}
+    1 & \text{if $t=s$} \\
+    \frac{\beta_1}{1+\beta_1^2} & \text{if $|t-s|=1$} \\
+    0 & \text{Otherwise}
+\end{cases} $$
+
+*7.3.2*
+*For MA(2)*
+$$\rho (s, t) = \begin{cases}
+    1 & \text{if $t=s$} \\
+    \frac{\beta_1 + \beta_1 \beta_2}{1+\beta_1^2 + \beta_2^2} & \text{if $|t-s|=1$} \\
+    \frac{\beta_2}{1+\beta_1^2 + \beta_2^2} & \text{if $|t-s|=2$} \\
+    0 & \text{Otherwise}
+\end{cases} $$
+
+
+The ACF for when $(\beta_1 = 0.3, \beta_2 = -0.4)$ and $(\beta_1 = -1.2, \beta_2 = -1.6)$ are the same.
+
+*7.3.3*
+```{r 7.3.3 Simulation}
+set.seed(10)
+
+q = 5
+sigma = 5
+
+N=500
+n=10
+
+tot.res = rep(0, n+1)
+
+for (i in 1:1000) {
+    w_t = rnorm(N, 0, sd=sqrt(sigma))
+    v_t = filter(w_t, filter = rep(1/(2*q+1), 2*q+1), method="convolution", sides=2)
+    v_t = na.omit(v_t)
+    
+    empirical.ACF = acf(v_t, lag.max=n, type="covariance", plot=F)$acf
+    theoretical.ACF = (sigma/(2*q+1)^2)*seq(from=2*q+1, to=2*q+1-n)
+    
+    res = empirical.ACF - theoretical.ACF
+    
+    tot.res = tot.res + res
+}
+
+print(as.vector(tot.res/1000))
+```
+
+
+
+
+
+
+
+
+
+
+
+
