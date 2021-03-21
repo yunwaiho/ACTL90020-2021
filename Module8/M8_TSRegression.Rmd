@@ -1,0 +1,58 @@
+---
+title: "ACTL90020 Module 8"
+output: html_notebook
+---
+
+**8.21**
+```{r}
+global = astsa::globtemp
+
+lm.fit = lm(global ~ time(global))
+qd.fit = lm(global ~ time(global) + I(time(global)^2))
+global.lr = lowess(global)
+
+plot(global,
+     main="TS of Global mean land-ocean temperature deviations to 2015",
+     sub="Linear Regression fits")
+abline(lm.fit, lty = 1, col = "black")
+lines(global.lr, lty = 2, col = "blue")
+lines(data.frame(x = time(global), y = predict(qd.fit, global)), lty = 3, col="red")
+legend("topleft", legend=c("Linear", "Lowess", "Quad"),
+       col = c("black", "blue", "red"),
+       lty = 1:3)
+
+```
+* Linear regression does not fit very well, overally underestimates the 
+years before the war and after 1980s. Overestimates years in wars
+* Lowess fits better, but still does not reflect the spike in positive
+mean land temperature during war
+* Quadratic regression is the same as the Lowess
+
+
+```{r}
+years = time(global)
+ww1_start = 1914
+ww2_end = 1945
+
+war.period = ifelse(years < ww1_start, "Pre War", 
+                     ifelse(years>ww2_end, "Post War", "War"))
+year.ds = data.frame(year = years, war = war.period)
+piecewise.lm = lm(global ~ year*war, data = year.ds)
+summary(piecewise.lm)
+
+plot(global,
+     main="TS of Global mean land-ocean temperature deviations to 2015",
+     sub="Piecewise LR")
+lines(data.frame(x = years, y = predict(piecewise.lm, year.ds)), 
+      lty=2, col="blue")
+
+res = residuals(piecewise.lm)
+res.ts = ts(as.vector(res), start=1880, end=2015)
+#par(mfrow=c(2,2))
+#plot(piecewise.lm)
+plot.ts(res.ts)
+par(mar=c(3, 3, 3, 3))
+acf(res)
+
+```
+
