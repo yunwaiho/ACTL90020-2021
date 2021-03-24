@@ -3,7 +3,7 @@ title: "ACTL90020 Module 8"
 output: html_notebook
 ---
 
-**8.21**
+**8.2.1**
 ```{r}
 global = astsa::globtemp
 
@@ -47,7 +47,7 @@ lines(data.frame(x = years, y = predict(piecewise.lm, year.ds)),
       lty=2, col="blue")
 
 res = residuals(piecewise.lm)
-res.ts = ts(as.vector(res), start=1880, end=2015)
+res.ts = ts(res, start=1880, end=2015)
 #par(mfrow=c(2,2))
 #plot(piecewise.lm)
 plot.ts(res.ts)
@@ -55,4 +55,76 @@ par(mar=c(3, 3, 3, 3))
 acf(res)
 
 ```
+
+**8.2.2**
+```{r}
+library(astsa)
+str(jj)
+lm.fit = lm(jj ~ time(jj))
+plot(jj)
+lines(data.frame(x = time(jj), y = predict(lm.fit, time(jj))), 
+      lty=2, col="blue")
+
+res.jj = ts(residuals(lm.fit), start = c(1960, 1), end=c(1981, 4), freq = 4)
+plot(res.jj)
+acf(res.jj)
+
+```
+
+```{r}
+
+jj.diff = diff(jj)
+acf(jj.diff)
+
+```
+
+```{r}
+
+quad.fit = lm(jj ~ time(jj) + I(time(jj)^2))
+plot(jj)
+lines(data.frame(x = time(jj), y = predict(quad.fit, time(jj))), 
+      lty=2, col="blue")
+
+res.jj2 = ts(residuals(quad.fit), start = c(1960, 1), end=c(1981, 4), freq = 4)
+plot(res.jj2)
+acf(res.jj2)
+
+```
+
+
+```{r}
+
+jj.log = log(jj)
+lmlog.fit = lm(jj.log ~ time(jj))
+plot(jj.log)
+lines(data.frame(x = time(jj), y = predict(lmlog.fit, time(jj))), 
+      lty=2, col="blue")
+
+res.jj3 = ts(residuals(lmlog.fit), start = c(1960, 1), end=c(1981, 4), freq = 4)
+plot(res.jj3)
+acf(res.jj3)
+```
+
+**8.3.2**
+```{r}
+library(astsa)
+
+cmort.smooth = ksmooth(time(cmort), cmort, bandwidth = 0.5)
+
+plot(cmort)
+lines(cmort.smooth, lwd = 2.5, col = "blue")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
 

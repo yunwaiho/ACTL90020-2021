@@ -10,6 +10,7 @@ output: html_notebook
 ```{r 7.2.1 Prep}
 library(astsa) # Applied Statistical TS Analysis
 library(xts) # eXtensible TS
+# library(TTR) getYahooData() deprecated
 library(quantmod)
 
 DJI = getSymbols("^DJI", src="yahoo",
@@ -110,13 +111,36 @@ for (i in 1:1000) {
 print(as.vector(tot.res/1000))
 ```
 
+*7.5.3*
+```{r}
+par(mar=c(3,3,3,3))
+# 1
+DJI.r = na.omit(DJI$DJI.Close/lag(DJI$DJI.Close) - 1)
+ASX200.r = na.omit(ASX200$AXJO.Close/lag(ASX200$AXJO.Close) - 1)
 
+acf(DJI.r)
+acf(ASX200.r)
 
+#2
+DJI.acf1 = function(x) {
+    
+    DJI.AR = filter(DJI.r, filter = c(x), method = "recursive")
+    
+    return (acf(DJI.AR, plot = F)$acf[[2]])
+}
 
+root = uniroot(DJI.acf1, interval = c(-1,1))
+root$root
+DJI.AR = filter(DJI.r, filter = c(root$root), method = "recursive")
 
+acf(DJI.AR)
 
+#3
+cross.cor = ccf(as.ts(DJI.r), as.ts(ASX200.r))
+cross.cor$lag[which.max(cross.cor$acf)]
 
-
+# x leads y
+```
 
 
 
