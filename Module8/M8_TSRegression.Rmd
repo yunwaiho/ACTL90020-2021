@@ -43,6 +43,7 @@ summary(piecewise.lm)
 plot(global,
      main="TS of Global mean land-ocean temperature deviations to 2015",
      sub="Piecewise LR")
+# Use fitted()
 lines(data.frame(x = years, y = predict(piecewise.lm, year.ds)), 
       lty=2, col="blue")
 
@@ -116,13 +117,31 @@ lines(cmort.smooth, lwd = 2.5, col = "blue")
 
 ```
 
+**Using pipelines to try to make cleaner code**
+```{r}
+library(tidyverse)
+library(tsibble)
+library(astsa)
 
+global.ts = globtemp %>%
+    as_tsibble(.) %>%
+    rename(Year = index, Temp = value)
 
+linear.fit = lm(Temp ~ Year, data=global.ts)
 
+global.ts %>%
+    ggplot(aes(x = Year,
+               y = Temp)) +
+        geom_line() + 
+        geom_line(aes(x = Year,
+                      y = fitted(linear.fit))) +
+         scale_x_continuous(name = "Year",
+                          breaks = seq(1880, 2020, 20)) + 
+        scale_y_continuous(name = "Mean Global Temp")
 
+    
 
-
-
+```
 
 
 
