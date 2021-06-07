@@ -1,0 +1,162 @@
+---
+title: "Module 2: Collective Risk Modelling"
+output: html_notebook
+---
+
+**2.2.3**
+
+```{r}
+library(actuar)
+
+# Part 1
+y = c(0, 1, 2, 3, 4, 5)
+pmf1 = c(0.1, 0.2, 0.2, 0.2, 0.2, 0.1)
+pmf2 = c(0.0 ,0.2 ,0.0 ,0.3 ,0.4 ,0.1)
+pmf3 = c(0.30, 0.10, 0.05, 0.30, 0.15, 0.10)
+pmf12 = c()
+for (z in 0:10) {
+    tot = 0
+    for (i in 1:6) {
+        for (j in 1:6) {
+            if ((y[i] + y[j])==z) {
+                tot = tot + pmf1[i]*pmf2[j]
+            }
+        }
+    }
+    pmf12 = c(pmf12, tot)
+}
+
+pmf123 = c()
+for (z in 0:15) {
+    tot = 0
+    for (i in 1:length(pmf12)) {
+        for (j in 1:length(pmf3)) {
+            if ((i+j-2)==z) {
+                tot = tot + pmf12[i]*pmf3[j]
+            }
+        }
+    }
+    pmf123 = c(pmf123, tot)
+}
+
+pmf123
+
+convolve.pmf <- function(v, df) {
+    a1 <- v[1]
+    a2 <- v[2]
+    y <- df[,1]
+    d1 <- df[,2]
+    d2 <- df[,3]
+    
+    y1 <- a1*y
+    y2 <- a2*y
+    d1.a <- rep(0, max(y1)+1)
+    d2.a <- rep(0, max(y2)+1)
+    
+    d1.a[y1+1] <- d1
+    d2.a[y2+1] <- d2
+    
+    new.y <- tail(y1,1) + tail(y2, 1)
+    
+    out <- c()
+    for (z in 0:new.y) {
+        tot = 0
+        for (i in 1:length(d1.a)) {
+            for (j in 1:length(d2.a)) {
+                if ((i+j-2) == z) {
+                    tot <- tot + d1.a[i]*d2.a[j]
+                }
+            }
+        }
+        out <- c(out, tot)
+    }
+    
+    return(data.frame(0:new.y, out))
+}
+
+# Part 2
+a <- c(3, 2)
+pmf1 <- c(0.1, 0.2, 0.2, 0.2, 0.2, 0.05, 0.05)
+pmf3 <-  c(0.30, 0.10, 0.05, 0.30, 0.15, 0.10, 0)
+y <- 1:length(pmf1) - 1
+
+convolve.pmf(a, cbind(y, pmf1, pmf3))
+
+```
+**2.3.5**
+
+```{r}
+# Conditions
+# both N and X are discrete with finite range
+
+fX <- c(0, 0.5, 0.4, 0.1)
+fN <- c(0.1, 0.3, 0.4, 0.2)
+
+
+aggDist <- function(distx, distn) {
+    rX <- length(distx) - 1
+    rN <- length(distn) - 1
+    rS <- rX * rN 
+    
+    probs <- matrix(0, nrow = rS+1, ncol = rN)
+    probs[1:length(distx), 1] <- distx
+    for (n in 2:rN) {
+        pmf <- c()
+        for (i in 1:(rS+1)) {
+            pmf <- c(pmf, distx[1:min(i,length(distx))]%*%probs[i:max(1,i-length(distx)+1), n-1])
+        }
+        probs[1:length(pmf),n] <- pmf
+    }
+    
+    convolutions <- cbind(0:rS, c(1, rep(0, rS)),probs)
+    
+    agg <- convolutions[, -1]%*%distn
+    
+    
+    return(agg)
+}
+
+aggDist(fX, fN)
+
+```
+
+```{r}
+
+sparse <- function(s, lambda, pi.i, i) {
+    lambda.i <- lambda*pi.i
+    x <- 0:s
+    p.mass <- matrix(0, nrow = s+1, ncol = length(i))
+    
+    for (j in i) {
+        p.mass[which(x%%j == 0), j] <- dpois(0:(s%/%j), lambda.i[j])
+    }
+    
+    pmf <- p.mass[ ,1]
+    for (j in 2:length(i)) {
+        pmf <- convolve(pmf, p.mass[, j])
+    }
+    print(p.mass)
+    return (cbind(x, pmf, cumsum(pmf)))
+}
+
+sparse(36, 1, 1:3, 1:3)
+
+sparse(4, 2, (1:4)/10, 1:4)
+
+```
+
+
+```{r}
+t = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+Nt = c(1000, 997, 985, 989, 1056, 1070, 994, 986, 1093, 1054)
+vt = c(10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000)
+
+freq = Nt/vt
+
+lambda.hat = sum(Nt)/sum(vt)
+lambda.hat
+pois.fit <- fitdistrplus::fitdist(Nt, "pois", discrete = T)
+nb.fit <- fitdistrplus::fitdist(Nt, "nbinom", discrete = T)
+
+fitdistrplus::gofstat(pois.fit)
+```

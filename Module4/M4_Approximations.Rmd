@@ -1,0 +1,47 @@
+---
+title: "Module 4: Algorithms and Approximations"
+output: html_notebook
+---
+**4.1.5**
+
+```{r}
+
+Panjer <- function(a, b, fX, fS0, type, vartype, print) {
+# range of X
+rX <- length(fX) - 1
+# initialisation of our results vectors
+pmf <- c(fS0)
+df <- c(fS0)
+if (type == 1) {
+# if we want the first s recursions i=s
+for (i in 1:vartype) {
+temp <- sum((a + b * (1:min(i, rX))/i) * fX[(1:min(i,
+rX)) + 1] * pmf[i - (1:min(i, rX)) + 1])
+pmf <- c(pmf, temp/(1 - a * fX[1])) # we divide only at the end
+df <- c(df, df[i] + pmf[i + 1]) # the df...
+} # end i loop
+i <- vartype + 1 # useful to know how many recursions we did for below
+} else {
+# if we focus on the df
+i <- 1 # since we use while, we need to create our own counter
+while (df[i] < (1 - vartype)) {
+# we can use while here
+temp <- sum((a + b * (1:min(i, rX))/i) * fX[(1:min(i,
+rX)) + 1] * pmf[i - (1:min(i, rX)) + 1])
+pmf <- c(pmf, temp/(1 - a * fX[1]))
+df <- c(df, df[i] + pmf[i + 1])
+i <- i + 1 # increment the counter
+# the number of recursions is simply i in this case (for
+# below)
+} # end while
+}
+# printing results
+if (print == 1)
+{
+results <- data.frame(x = 0:(i - 1), fS = pmf, FS = df)
+print(results)
+} # end if
+# returning results
+array(c(pmf, df), c(i, 2))
+}
+```

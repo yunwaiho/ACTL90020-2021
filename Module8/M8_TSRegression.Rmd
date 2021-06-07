@@ -110,7 +110,7 @@ acf(res.jj3)
 ```{r}
 library(astsa)
 
-cmort.smooth = ksmooth(time(cmort), cmort, bandwidth = 0.5)
+cmort.smooth = ksmooth(time(cmort), cmort, bandwidth = 0.7)
 
 plot(cmort)
 lines(cmort.smooth, lwd = 2.5, col = "blue")

@@ -1,0 +1,48 @@
+---
+title: "ACTL90020 Module 10"
+output: html_notebook
+---
+
+**10.2.2**
+
+```{r}
+library(tidyverse)
+library(astsa)
+data = JohnsonJohnson %>%
+        log(.)
+
+par(mfrow=c(2,2))
+plot(diff(data, differences = 1))
+plot(diff(data, differences = 2))
+plot(diff(data, differences = 3))
+plot(diff(data, differences = 4))
+
+par(mfrow = c(4, 2), mar = c(2,4,4,2))
+acf(diff(data, differences = 1))
+pacf(diff(data, differences = 1))
+
+acf(diff(data, differences = 2))
+pacf(diff(data, differences = 2))
+
+acf(diff(data, differences = 3))
+pacf(diff(data, differences = 3))
+
+acf(diff(data, differences = 4))
+pacf(diff(data, differences = 4))
+plot.new()
+```
+
+```{r}
+d = 4
+p = 6
+for (i in 1:d) {
+    for (j in 4:p) {
+        fit = sarima(data, j, i, 0)
+        tsdiag(fit$fit)
+    }
+}
+
+```
+
+
+
