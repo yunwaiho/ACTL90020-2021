@@ -1,0 +1,52 @@
+---
+title: "Module 6: Extreme Value Theory"
+output: html_notebook
+---
+
+**6.1.1**
+
+```{r}
+claims <- readxl::read_excel("simulated-claims.xlsx")
+claims$blocks <- (claims$month - 1)%/%12 + 1
+names(claims)
+
+block.max <- aggregate(logn ~ blocks, claims, max)
+
+block.max.fit <- extRemes::fevd(block.max$logn)
+summary(block.max.fit)
+plot(block.max.fit)
+plot(block.max.fit, "trace")
+
+fit.logn.gumbel <- extRemes::fevd(block.max$logn, type = "Gumbel")
+
+extRemes::lr.test(fit.logn.gumbel, block.max.fit)
+
+```
+
+**6.1.4**
+```{r}
+claims <- readxl::read_excel("simulated-claims.xlsx")
+extRemes::mrlplot(claims$beta)
+extRemes::mrlplot(claims$gamm)
+extRemes::mrlplot(claims$logn)
+extRemes::mrlplot(claims$logg)
+
+evir::emplot(claims$beta, alog = "xy")
+evir::emplot(claims$gamm, alog = "xy")
+evir::emplot(claims$logn, alog = "xy")
+evir::emplot(claims$logg, alog = "xy")
+
+evir::hill(claims$beta)
+evir::hill(claims$gamm)
+evir::hill(claims$logn)
+evir::hill(claims$logg)
+
+extRemes::threshrange.plot(claims$beta, r = c(2000,30000), nint = 30)
+extRemes::threshrange.plot(claims$gamm, r = c(10000,40000), nint = 30)
+extRemes::threshrange.plot(claims$logn, r = c(20000,45000), nint = 30)
+extRemes::threshrange.plot(claims$logg, r = c(20000,45000), nint = 30)
+
+# When fitting GP, use type=GP and find different thresholds.
+plot(extRemes::fevd(claims$beta, threshold = 1000, type = "GP"))
+
+```

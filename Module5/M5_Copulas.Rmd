@@ -1,0 +1,82 @@
+---
+title: "Module 5: Copulas"
+output: html_notebook
+---
+
+**5.4.1**
+```{r}
+library(actuar)
+library(copula)
+```
+
+```{r}
+# FGM dist
+# 
+n <- 1000
+theta <- 1
+
+u <- runif(n)
+t <- runif(n)
+
+a <- theta*(1-2*u) - 1
+b <- sqrt(a^2 - 4*(a+1)*t)
+
+v <- 2*t/(b-a)
+
+```
+```{r}
+# Plankett dist
+# 
+n <- 1000
+# theta <- 1
+# theta <- 0.36
+theta <- 10.7
+
+u <- runif(n)
+t <- runif(n)
+
+a <- t*(1-t)
+b <- theta + a*(theta - 1)^2
+c <- 2*a*(u*theta^2 + 1 - u) + theta*(1-2*a)
+d <- sqrt(theta)*sqrt(theta + 4*a*u*(1-u)*(1-theta)^2)
+
+v <- (c - (1-2*t)*d)/(2*b)
+
+x <- qpareto(u, 2, 200)
+y <- qpareto(v, 2, 200)
+
+plot(pobs(x), pobs(y))
+plot(x, y)
+
+(theta+1)/(theta-1) - (2*theta/(theta-1)^2)*log(theta)
+cor(x, y, method = "spearman")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
